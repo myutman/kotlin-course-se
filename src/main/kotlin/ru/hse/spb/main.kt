@@ -1,4 +1,6 @@
 package ru.hse.spb
+import ru.hse.spb.parser.ExpLexer
+import ru.hse.spb.parser.ExpParser
 
 fun getGreeting(): String {
     val words = mutableListOf<String>()
@@ -9,5 +11,6 @@ fun getGreeting(): String {
 }
 
 fun main(args: Array<String>) {
-    println(getGreeting())
+    val expLexer = ExpLexer(CharStreams.fromString("(1 + 2)"))
+    println(ExpParser(BufferedTokenStream(expLexer)).eval().value)
 }
