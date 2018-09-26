@@ -14,17 +14,18 @@ blockWithBraces returns [ru.hse.spb.Block value]
     ;
 
 statement returns [ru.hse.spb.Statement value]
-    :   (s=function {$value = $s.value;}
+    :   (s=functionDefinition {$value = $s.value;}
         | v=variable {$value = $v.value;}
         | w=whileLoop {$value = $w.value;}
         | e=expression {$value = $e.value;}
         | c=conditional {$value = $c.value;}
         | a=assignment {$value = $a.value;}
-        | r=returnStatement {$value = $r.value;})
+        | r=returnStatement {$value = $r.value;}
+        | p=printStatement {$value = $p.value;})
     ;
 
-function returns [ru.hse.spb.Function value]
-    :    'fun' name=IDENTIFIER '(' pars=parameterNames ')' b=blockWithBraces {$value = new ru.hse.spb.Function($name.text, $pars.list, $b.value);}
+functionDefinition returns [ru.hse.spb.FunctionDefinition value]
+    :    'fun' name=IDENTIFIER '(' pars=parameterNames ')' b=blockWithBraces {$value = new ru.hse.spb.FunctionDefinition($name.text, $pars.list, $b.value);}
     ;
 
 variable returns [ru.hse.spb.Variable value]
@@ -79,6 +80,10 @@ arguments returns [java.util.List<ru.hse.spb.Expression> list]
         )?
     ;
 
+printStatement returns [ru.hse.spb.PrintStatement value]
+    :   'println' '(' args=arguments ')' {$value = new ru.hse.spb.PrintStatement($args.list);}
+    ;
+
 IDENTIFIER
     :   (('a'..'z')|('A'..'Z')|'_')
         (('a'..'z')|('A'..'Z')|('0'..'9')|'_')*
@@ -89,4 +94,4 @@ LITERAL
     ;
 
 WS : (' ' | '\t' | '\r'| '\n') -> skip;
-COMMENT : '//'.*'\n' -> skip;
+COMMENT : '//'(.)*? ('\n'|EOF) -> skip;

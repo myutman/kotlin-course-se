@@ -2,7 +2,8 @@ package ru.hse.spb
 
 interface Node {
     companion object {
-        val dict = HashMap<String, Any>()
+        const val RETURN_VALUE_IDENTIFIER = "return@value"
     }
-    fun evaluate() : Any
+
+    fun evaluate(scope: Scope) : Any
 }

@@ -43,3 +43,11 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'ru.hse.spb.MainKt'
+        )
+    }
+}

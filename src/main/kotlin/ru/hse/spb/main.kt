@@ -4,25 +4,27 @@ import org.antlr.v4.runtime.BufferedTokenStream
 import org.antlr.v4.runtime.CharStreams
 import ru.hse.spb.parser.ExpLexer
 import ru.hse.spb.parser.ExpParser
+import java.io.File
+import java.io.FileInputStream
+import java.nio.file.Files
 
-fun getGreeting(): String {
-    val words = mutableListOf<String>()
-    words.add("Hello,")
-    words.add("world!")
+fun buildAST(code: String) : Node {
+    val expLexer = ExpLexer(CharStreams.fromString(code))
+    val expParser = ExpParser(BufferedTokenStream(expLexer))
+    return expParser.file().value
+}
 
-    return words.joinToString(separator = " ")
+fun execute(code: String) {
+    val file = buildAST(code)
+    file.evaluate(Scope())
 }
 
 fun main(args: Array<String>) {
-    val expLexer = ExpLexer(CharStreams.fromString("""var a = 10
-            var b = 20
-            if (a > b) {
-                b = 1
-            } else {
-                b = 0
-            }"""))
-
-    val expParser = ExpParser(BufferedTokenStream(expLexer))
-    val file = expParser.file().value
-    //println(ExpParser(BufferedTokenStream(expLexer)).parse().value)
+    val path: String
+    if (args.size == 0) {
+        path = "src/main/resources/code_sample.txt"
+    } else {
+        path = args[0]
+    }
+    execute(File(path).readText(Charsets.UTF_8))
 }
