@@ -1,16 +1,17 @@
 package ru.hse.spb
 
 import java.util.*
+import kotlin.collections.ArrayList
 
-enum class Type { OPEN, ADD_QUERY, REM_QUERY, CLOSE }
+private enum class Type { OPEN, ADD_QUERY, REM_QUERY, CLOSE }
 
-data class Event(val x: Int, val y: Int, val type: Type) : Comparable<Event> {
+private data class Event(val x: Int, val y: Int, val type: Type) : Comparable<Event> {
     override fun compareTo(other: Event): Int {
         return if (x != other.x) x.compareTo(other.x) else type.compareTo(other.type)
     }
 }
 
-data class Seg(val x1: Int, val x2: Int, val y: Int) : Comparable<Seg> {
+private data class Seg(val x1: Int, val x2: Int, val y: Int) : Comparable<Seg> {
     override fun compareTo(other: Seg): Int {
         return x1.compareTo(other.x1)
     }
@@ -19,68 +20,69 @@ data class Seg(val x1: Int, val x2: Int, val y: Int) : Comparable<Seg> {
         get() = x2 - x1 + 1
 }
 
-fun unique(source: ArrayList<Seg>): ArrayList<Seg> {
+private fun unique(src: List<Seg>): List<Seg> {
+    val source = ArrayList<Seg>(src)
     source.sort()
     val left = HashMap<Int, Int>()
     val right = HashMap<Int, Int>()
     val ans = ArrayList<Seg>()
     for (seg in source) {
-        if (right.containsKey(seg.y) && right.get(seg.y) !!>= seg.x1) {
-            if (right.get(seg.y) !!<= seg.x2) {
-                right.put(seg.y, seg.x2)
+        if (right.containsKey(seg.y) && right[seg.y]!! >= seg.x1) {
+            if (right[seg.y]!! <= seg.x2) {
+                right[seg.y] = seg.x2
             }
         } else {
             if (right.containsKey(seg.y)) {
-                ans.add(Seg(left.get(seg.y)!!, right.get(seg.y)!!, seg.y))
+                ans.add(Seg(left[seg.y]!!, right[seg.y]!!, seg.y))
             }
-            left.put(seg.y, seg.x1)
-            right.put(seg.y, seg.x2)
+            left[seg.y] = seg.x1
+            right[seg.y] = seg.x2
         }
     }
     for (y in left.keys) {
-        ans.add(Seg(left.get(y)!!, right.get(y)!!, y))
+        ans.add(Seg(left[y]!!, right[y]!!, y))
     }
     return ans
 }
 
-var array: IntArray = intArrayOf()
-
-fun add(x: Int, value: Int) {
+private fun IntArray.add(x: Int, value: Int) {
     var x1 = x
-    while (x1 < array.size) {
-        array[x1] += value
+    while (x1 < size) {
+        this[x1] += value
         x1 = x1 or (x1 + 1)
     }
 }
 
-fun get(x: Int): Int {
+private fun IntArray.gt(x: Int): Int {
     var x1 = x
     var ans = 0
     while (x1 >= 0) {
-        ans += array[x1]
+        ans += this[x1]
         x1 = (x1 and (x1 + 1)) - 1
     }
     return ans
 }
 
-fun <T: Comparable<T>> ArrayList<T>.lowerBound(key: T): Int {
+private fun <T: Comparable<T>> List<T>.lowerBound(key: T): Int {
     var l = 0
     var r = size
     while (l < r - 1) {
         val m = (l + r) / 2
-        if (get(m) == key) return m
-        else if (get(m) > key) r = m
-        else l = m + 1
+        when {
+            this[m] == key -> return m
+            this[m] > key -> r = m
+            else -> l = m + 1
+        }
     }
     return l
 }
 
-fun main(args: Array<String>) {
+private fun initSegs(): Pair<List<Seg>, List<Seg>> {
     val n = readLine()!!.toInt()
-    var vertical = ArrayList<Seg>()
-    var horisontal = ArrayList<Seg>()
+    val vertical = ArrayList<Seg>()
+    val horisontal = ArrayList<Seg>()
     for (i in 1..n) {
-        var (x1, y1, x2, y2) = readLine()!!.split(' ').map { Integer.parseInt(it) }
+        var (x1, y1, x2, y2) = readLine()!!.split(' ').map { it.toInt() }
         if (x1 == x2) {
             if (y1 > y2) {
                 val t = y1
@@ -97,7 +99,12 @@ fun main(args: Array<String>) {
             horisontal.add(Seg(x1, x2, y1))
         }
     }
+    return Pair(vertical, horisontal)
+}
 
+fun main(args: Array<String>) {
+
+    var (vertical: List<Seg>, horisontal: List<Seg>) = initSegs()
     vertical = unique(vertical)
     horisontal = unique(horisontal)
 
@@ -124,15 +131,15 @@ fun main(args: Array<String>) {
     ys.sort()
     events.sort()
 
-    array = IntArray(ys.size)
+    val ar = IntArray(ys.size)
 
     for (event in events) {
         val y = ys.lowerBound(event.y)
         when (event.type) {
-            Type.OPEN -> add(y, 1)
-            Type.CLOSE -> add(y, -1)
-            Type.REM_QUERY -> ans += get(y - 1)
-            Type.ADD_QUERY -> ans -= get(y)
+            Type.OPEN -> ar.add(y, 1)
+            Type.CLOSE -> ar.add(y, -1)
+            Type.REM_QUERY -> ans += ar.gt(y - 1)
+            Type.ADD_QUERY -> ans -= ar.gt(y)
         }
     }
 
