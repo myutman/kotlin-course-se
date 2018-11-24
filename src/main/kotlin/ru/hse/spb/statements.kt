@@ -48,11 +48,7 @@ class Assignment(val name: String, val exp: Expression) : Statement {
 
 class PrintStatement(val args: List<Expression>) : Statement {
     override fun evaluate(scope: Scope) {
-        for (exp in args) {
-            print(exp.evaluate(scope))
-            print(" ")
-        }
-        println()
+        println(args.joinToString(" "){ it.evaluate(scope).toString() })
     }
 
 }

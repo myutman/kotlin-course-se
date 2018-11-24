@@ -2,21 +2,11 @@ package ru.hse.spb
 
 import java.lang.RuntimeException
 
-class Scope{
+class Scope(private val parent: Scope? = null) {
     private val dictionary: MutableMap<String, Any> = HashMap()
-    private val parent: Scope?
-
-    constructor() {
-        parent = null
-    }
-
-    constructor(parent: Scope) {
-        this.parent = parent
-    }
 
     fun get(key: String): Any {
-        val v = dictionary[key] ?: parent?.get(key) ?: throw RuntimeException("Variable $key not found")
-        return v
+        return dictionary[key] ?: parent?.get(key) ?: throw RuntimeException("Variable $key not found")
     }
 
     fun add(key: String, value: Any) {

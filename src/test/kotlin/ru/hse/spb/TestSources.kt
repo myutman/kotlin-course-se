@@ -8,7 +8,7 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
-class TestSource {
+class TestSources {
 
     private val output = ByteArrayOutputStream()
     private val errors = ByteArrayOutputStream()
@@ -60,11 +60,11 @@ class TestSource {
         whileBody.add(Assignment("i", BinaryExpression(IdentifierExpression("i"), LiteralExpression(1), "+")))
         file.add(WhileLoop(BinaryExpression(IdentifierExpression("i"), LiteralExpression(5), "<="), whileBody))
         file.evaluate(Scope())
-        assertEquals("1 1 \n" +
-                "2 2 \n" +
-                "3 3 \n" +
-                "4 5 \n" +
-                "5 8 \n", output.toString())
+        assertEquals("1 1\n" +
+                "2 2\n" +
+                "3 3\n" +
+                "4 5\n" +
+                "5 8\n", output.toString())
     }
 
     @Test
@@ -78,6 +78,6 @@ class TestSource {
         }
 
         println(foo(41)) // prints 42""")
-        assertEquals("42 \n", output.toString())
+        assertEquals("42\n", output.toString())
     }
 }
