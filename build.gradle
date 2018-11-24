@@ -50,4 +50,5 @@ jar {
                 'Main-Class': 'ru.hse.spb.MainKt'
         )
     }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }

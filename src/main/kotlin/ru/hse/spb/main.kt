@@ -1,10 +1,13 @@
 package ru.hse.spb
 
+import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable
 import org.antlr.v4.runtime.BufferedTokenStream
 import org.antlr.v4.runtime.CharStreams
 import ru.hse.spb.parser.ExpLexer
 import ru.hse.spb.parser.ExpParser
 import java.io.File
+import java.io.FileNotFoundException
+import java.lang.RuntimeException
 
 fun buildAST(code: String) : Node {
     val expLexer = ExpLexer(CharStreams.fromString(code))
@@ -22,5 +25,11 @@ fun main(args: Array<String>) {
                 "src/main/resources/code_sample.txt"
             else
                 args[0]
-    execute(File(path).readText(Charsets.UTF_8))
+    try {
+        execute(File(path).readText(Charsets.UTF_8))
+    } catch (e: FileNotFoundException) {
+        System.err.println(e.message)
+    } catch (e: RuntimeException) {
+        System.err.println(e.message)
+    }
 }
