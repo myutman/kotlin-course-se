@@ -1,12 +1,10 @@
 package ru.hse.spb
 
-import javax.print.attribute.standard.MediaSize
-
 interface Element {
     fun render(builder: StringBuilder, indent: String)
 }
 
-class TextElement(val text: String) : Element {
+class TextElement(private val text: String) : Element {
     override fun render(builder: StringBuilder, indent: String) {
         builder.append("$indent$text\n")
     }
@@ -16,7 +14,7 @@ class TextElement(val text: String) : Element {
 annotation class TexCommandMarker
 
 @TexCommandMarker
-abstract class TexCommand(val name: String, val options: List<String> = emptyList()) : Element {
+abstract class TexCommand(protected val name: String, private val options: List<String> = emptyList()) : Element {
     val children = arrayListOf<Element>()
 
     protected fun <T : Element> initCommand(command: T, init: T.() -> Unit): T {
@@ -30,30 +28,15 @@ abstract class TexCommand(val name: String, val options: List<String> = emptyLis
     }
 
     protected fun renderAttributes(): String {
-        if (options.isEmpty()) {
-            return "";
-        }
-        val builder = StringBuilder()
-        builder.append("[")
-        var flag = false
-        for (attr in options) {
-            if (flag) {
-                builder.append(", ")
-            } else {
-                flag = true;
-            }
-            builder.append(attr)
-        }
-        builder.append("]")
-        return builder.toString()
+        return if (options.isEmpty()) "" else options.joinToString(prefix = "[", postfix ="]")
     }
 
     override fun toString(): String {
-        val builder = StringBuilder()
-        render(builder, "")
-        return builder.toString()
+        return buildString { render(this@buildString, "") }
     }
 }
+
+const val TEX_INDENT = "  "
 
 abstract class TexCommandWithBody(name: String, options: List<String> = emptyList()) : TexCommand(name, options) {
     operator fun String.unaryPlus() {
@@ -63,7 +46,7 @@ abstract class TexCommandWithBody(name: String, options: List<String> = emptyLis
     override fun render(builder: StringBuilder, indent: String) {
         builder.append("$indent\\begin{$name}${renderAttributes()}\n")
         for (c in children) {
-            c.render(builder, indent + "  ")
+            c.render(builder, indent + TEX_INDENT)
         }
         builder.append("$indent\\end{$name}\n")
     }
@@ -87,7 +70,7 @@ class Item : NonTerminalTexCommandWithBody("item") {
     override fun render(builder: StringBuilder, indent: String) {
         builder.append("$indent\\item\n")
         for (c in children) {
-            c.render(builder, indent + "  ")
+            c.render(builder, indent + TEX_INDENT)
         }
     }
 }
@@ -112,7 +95,7 @@ class FrameTitle(frameTitle: String): TexCommandWithoutBody("frametitle", text =
 
 class Frame(options: List<String>, frameTitle: String) : NonTerminalTexCommandWithBody("frame", options) {
     init {
-        children.add(FrameTitle(frameTitle))
+        children += FrameTitle(frameTitle)
     }
 }
 
@@ -142,9 +125,7 @@ class Document : NonTerminalTexCommandWithBody("document") {
 
 
 fun document(init: Document.() -> Unit): Document {
-    val document = Document()
-    document.init()
-    return document
+    return Document().apply(init)
 }
 
 infix fun String.to(other: String): String {
@@ -152,10 +133,10 @@ infix fun String.to(other: String): String {
 }
 
 fun main(args: Array<String>) {
-    val rows = listOf<String>("hello", "is", "there", "anybody", "in", "there")
+    val rows = listOf("hello", "is", "there", "anybody", "in", "there")
     print(document {
         documentClass("beamer")
-        usepackage("babel", "russian" /* varargs */)
+        usepackage("babel", "russian", "english" /* varargs */)
         frame("frametitle", "arg1" to "arg2") {
             math {
                 + "\\log"
@@ -163,6 +144,10 @@ fun main(args: Array<String>) {
 
             alignment {
                 + "\\sqrt"
+            }
+
+            for (s in rows) {
+                + s
             }
 
             // begin{pyglist}[language=kotlin]...\end{pyglist}
